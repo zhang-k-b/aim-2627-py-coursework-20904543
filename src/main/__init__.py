@@ -61,7 +61,80 @@ def status_report(name, robot_type, hp, max_hp, battery):
 def analyze_damage_log(lines):
     """TODO(Q2)：解析混合格式伤害日志，返回固定契约的统计 dict；
     行格式、去重与统计口径见题面 Q2 规范。"""
-    raise NotImplementedError("Q2 analyze_damage_log：题面 Q2·多源日志解析与统计")
+    total = 0
+    by_armor = {"front": 0, "left": 0, "right": 0}
+    armor_names = {"F": "front", "L": "left", "R": "right"}
+    event_count = 0
+    max_hit = 0
+    recorded_id = []
+    for line in lines:
+        if not isinstance(line, str):
+            continue
+
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        events = []
+
+        if line.startswith("{"):
+            try:
+                event = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            if not isinstance(event, dict):
+                continue
+
+            armor = event.get("armor", "")
+            damage = event.get("damage")
+            if damage is None:
+                continue
+            if armor not in ("front", "left", "right"):
+                continue
+            if type(damage) is not int or damage <= 0:
+                continue
+            if "id" in event:
+                event_id = event.get("id")
+                if event_id in recorded_id:
+                    continue
+                recorded_id.append(event_id)
+            total += damage
+            if armor in by_armor:
+                by_armor[armor] += damage
+            if damage > max_hit:
+                max_hit = damage
+            event_count += 1
+        else:
+            try:
+                for segment in line.split(","):
+                    letter, text = segment.split(":")
+                    armor = armor_names[letter.strip()]
+                    text = text.strip()
+
+                    if not text.isascii() or not text.isdecimal():
+                        events = []
+                        break
+
+                    damage = int(text)
+                    if damage <= 0:
+                        events = []
+                        break
+
+                    events.append((armor, damage))
+            except (ValueError, KeyError, TypeError):
+                continue
+            for armor, damage in events:
+                by_armor[armor] += damage
+                event_count += 1
+
+    total = sum(by_armor.values())
+
+    return {
+        "total": total,
+        "by_armor": by_armor,
+        "most_hit": max(by_armor, key=by_armor.get) if event_count else None,
+        "avg": round(total / event_count, 2) if event_count else 0.0,
+    }
 
 
 # ---------------------------------------------------------------------------
