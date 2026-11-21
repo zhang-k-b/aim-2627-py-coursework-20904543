@@ -386,8 +386,6 @@ def decide(sensor, state, hp, heat):
                     elif (state == SentryState.SUSPECT):
                         return ("SCAN", SentryState.SUSPECT)
 
-    raise NotImplementedError("Q5 decide：题面 Q5·决策规则表 R1-R7")
-
 
 # ---------------------------------------------------------------------------
 # Q6 巡逻任务（题面 Q6·巡逻契约与验收阈值）
