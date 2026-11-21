@@ -67,4 +67,10 @@ python main.py
 | `src/tests/`、`tools/`、`.github/`、`conftest.py`、`pytest.ini`、`main.py` | 测试与基础设施 | ❌ 勿改 |
 
 CI 只允许修改 `src/main/**`、`README.md` 与 `.agent-sessions/**`（AI 会话归档）——其余文件改了直接红；autopep8 `--diff` 非空即败。提交方式（push、问卷、commit 粒度）见题面"提交与验收"一节。
+## 6. q7修改
+1, total_route_meters要求单位为米，原本单位为厘米
+2，calibrate中，样本为空或没有正样本时，漂移为 0，漏了
+3，summarize_events要统计 id 不超过 max_id 的事件，漏了
+4，run_legacy_sim中，任一轮结束后体力 <= 20 时立即终止，不再继续后面的轮，写反了
+5，run_legacy_sim中，while循环是死循环
 
