@@ -348,41 +348,41 @@ def decide(sensor, state, hp, heat):
     hp_pct = hp_ratio(hp, max_hp)
     visible = bool(enemy_frames[-1])
     visible_previous = len(enemy_frames) >= 2 and bool(enemy_frames[-2])
-    if (hp_pct <= 30):
+    if hp_pct <= 30:
         return ("RETREAT", SentryState.RETREAT)
     else:
-        if (state == SentryState.RETREAT):
+        if state == SentryState.RETREAT:
             return ("RETURN", SentryState.RETURN)
-        elif (state == SentryState.RETURN):
+        elif state == SentryState.RETURN:
             return ("MOVE_BASE", SentryState.PATROL)
-        elif (state == SentryState.ENGAGE):
+        elif state == SentryState.ENGAGE:
             if visible == True:
-                if (enemy_dist <= 3):
+                if enemy_dist <= 3:
                     return ("SHOOT", SentryState.ENGAGE)
                 else:
-                    if (robot_type == "HERO"):
+                    if robot_type == "HERO":
                         return ("MOVE_RIGHT", SentryState.ENGAGE)
                     elif (robot_type == "INFANTRY"):
                         return ("MOVE_LEFT", SentryState.ENGAGE)
             else:
-                if (visible_previous):
+                if visible_previous:
                     return ("HOLD_FIRE", SentryState.ENGAGE)
                 else:
                     return ("SCAN", SentryState.SUSPECT)
-        elif (state == SentryState.PATROL or state == SentryState.SUSPECT):
-            if (visible):
-                if (visible_previous):
-                    if (enemy_dist <= 3):
+        elif state == SentryState.PATROL or state == SentryState.SUSPECT:
+            if visible:
+                if visible_previous:
+                    if enemy_dist <= 3:
                         return ("SHOOT", SentryState.ENGAGE)
                     else:
-                        if (robot_type == "HERO"):
+                        if robot_type == "HERO":
                             return ("MOVE_RIGHT", SentryState.ENGAGE)
-                        elif (robot_type == "INFANTRY"):
+                        elif robot_type == "INFANTRY":
                             return ("MOVE_LEFT", SentryState.ENGAGE)
                 else:
                     return ("SCAN", SentryState.SUSPECT)
             else:
-                if (state == SentryState.PATROL):
+                if state == SentryState.PATROL:
                     return ("PATROL_MOVE", SentryState.PATROL)
                 else:
                     return ("SCAN", SentryState.SUSPECT)
