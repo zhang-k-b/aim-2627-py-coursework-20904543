@@ -326,6 +326,7 @@ class SentryState(Enum):
     RETREAT = "RETREAT"
     RETURN = "RETURN"
 
+
 def decide(sensor, state, hp, heat):
     """TODO(Q5)：纯函数决策，返回 (action: str, new_state: SentryState)；
     sensor 字段契约、R1-R7 规则表与非法输入处理见题面 Q5 规范。"""
@@ -340,7 +341,7 @@ def decide(sensor, state, hp, heat):
     enemy_frames = sensor["enemy_frames"]
     if not isinstance(enemy_frames, (tuple, list)) or not 1 <= len(enemy_frames) <= 6:
         raise ValueError("enemy_frames 必须是长度为 1～6 的列表或元组")
-    
+
     enemy_dist = sensor["enemy_dist"]
     robot_type = sensor["robot_type"]
     max_hp = sensor["max_hp"]
@@ -369,22 +370,22 @@ def decide(sensor, state, hp, heat):
                 else:
                     return ("SCAN", SentryState.SUSPECT)
         elif (state == SentryState.PATROL or state == SentryState.SUSPECT):
-                if (visible):
-                    if (visible_previous):
-                        if (enemy_dist <= 3):
-                            return ("SHOOT", SentryState.ENGAGE)
-                        else:
-                            if (robot_type == "HERO"):
-                                return ("MOVE_RIGHT", SentryState.ENGAGE)
-                            elif (robot_type == "INFANTRY"):
-                                return ("MOVE_LEFT", SentryState.ENGAGE)
+            if (visible):
+                if (visible_previous):
+                    if (enemy_dist <= 3):
+                        return ("SHOOT", SentryState.ENGAGE)
                     else:
-                        return ("SCAN", SentryState.SUSPECT)
+                        if (robot_type == "HERO"):
+                            return ("MOVE_RIGHT", SentryState.ENGAGE)
+                        elif (robot_type == "INFANTRY"):
+                            return ("MOVE_LEFT", SentryState.ENGAGE)
                 else:
-                    if (state == SentryState.PATROL):
-                        return ("PATROL_MOVE", SentryState.PATROL)
-                    elif (state == SentryState.SUSPECT):
-                        return ("SCAN", SentryState.SUSPECT)
+                    return ("SCAN", SentryState.SUSPECT)
+            else:
+                if (state == SentryState.PATROL):
+                    return ("PATROL_MOVE", SentryState.PATROL)
+                else:
+                    return ("SCAN", SentryState.SUSPECT)
 
 
 # ---------------------------------------------------------------------------
@@ -393,6 +394,7 @@ def decide(sensor, state, hp, heat):
 def run_patrol(grid, max_steps=500):
     """TODO(Q6)：sense → decide → act 主循环；
     循环结构、终止条件、脱困自由度与统计返回契约见题面 Q6 规范。"""
+
     raise NotImplementedError("Q6 run_patrol：题面 Q6·主循环与统计契约")
 
 
