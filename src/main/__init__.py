@@ -326,10 +326,66 @@ class SentryState(Enum):
     RETREAT = "RETREAT"
     RETURN = "RETURN"
 
-
 def decide(sensor, state, hp, heat):
     """TODO(Q5)：纯函数决策，返回 (action: str, new_state: SentryState)；
     sensor 字段契约、R1-R7 规则表与非法输入处理见题面 Q5 规范。"""
+    required = ("enemy_frames", "enemy_dist", "robot_type", "max_hp")
+
+    if not isinstance(sensor, dict) or any(key not in sensor for key in required):
+        raise ValueError("sensor 缺少必要字段或格式不正确")
+
+    if not isinstance(state, SentryState):
+        raise ValueError("state 必须是 SentryState 成员")
+
+    enemy_frames = sensor["enemy_frames"]
+    if not isinstance(enemy_frames, (tuple, list)) or not 1 <= len(enemy_frames) <= 6:
+        raise ValueError("enemy_frames 必须是长度为 1～6 的列表或元组")
+    
+    enemy_dist = sensor["enemy_dist"]
+    robot_type = sensor["robot_type"]
+    max_hp = sensor["max_hp"]
+    hp_pct = hp_ratio(hp, max_hp)
+    visible = bool(enemy_frames[-1])
+    visible_previous = len(enemy_frames) >= 2 and bool(enemy_frames[-2])
+    if (hp_pct <= 30):
+        return ("RETREAT", SentryState.RETREAT)
+    else:
+        if (state == SentryState.RETREAT):
+            return ("RETURN", SentryState.RETURN)
+        elif (state == SentryState.RETURN):
+            return ("MOVE_BASE", SentryState.PATROL)
+        elif (state == SentryState.ENGAGE):
+            if visible == True:
+                if (enemy_dist <= 3):
+                    return ("SHOOT", SentryState.ENGAGE)
+                else:
+                    if (robot_type == "HERO"):
+                        return ("MOVE_RIGHT", SentryState.ENGAGE)
+                    elif (robot_type == "INFANTRY"):
+                        return ("MOVE_LEFT", SentryState.ENGAGE)
+            else:
+                if (visible_previous):
+                    return ("HOLD_FIRE", SentryState.ENGAGE)
+                else:
+                    return ("SCAN", SentryState.SUSPECT)
+        elif (state == SentryState.PATROL or state == SentryState.SUSPECT):
+                if (visible):
+                    if (visible_previous):
+                        if (enemy_dist <= 3):
+                            return ("SHOOT", SentryState.ENGAGE)
+                        else:
+                            if (robot_type == "HERO"):
+                                return ("MOVE_RIGHT", SentryState.ENGAGE)
+                            elif (robot_type == "INFANTRY"):
+                                return ("MOVE_LEFT", SentryState.ENGAGE)
+                    else:
+                        return ("SCAN", SentryState.SUSPECT)
+                else:
+                    if (state == SentryState.PATROL):
+                        return ("PATROL_MOVE", SentryState.PATROL)
+                    elif (state == SentryState.SUSPECT):
+                        return ("SCAN", SentryState.SUSPECT)
+
     raise NotImplementedError("Q5 decide：题面 Q5·决策规则表 R1-R7")
 
 
