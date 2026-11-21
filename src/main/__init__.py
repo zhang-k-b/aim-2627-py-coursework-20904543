@@ -394,13 +394,51 @@ def decide(sensor, state, hp, heat):
 def run_patrol(grid, max_steps=500):
     """TODO(Q6)：sense → decide → act 主循环；
     循环结构、终止条件、脱困自由度与统计返回契约见题面 Q6 规范。"""
+    directions = (Facing.UP, Facing.RIGHT, Facing.DOWN, Facing.LEFT)
+    steps, wall_steps, hand = 0, 0, -1
+    visited = {grid.current_pos}
+    entry = None
+    limit = grid.width + grid.height
 
-    raise NotImplementedError("Q6 run_patrol：题面 Q6·主循环与统计契约")
+    def distance(pos):
+        return abs(pos[0] - grid.enemy_pos[0]) + abs(pos[1] - grid.enemy_pos[1])
+
+    def cell(facing):
+        dx, dy = facing.delta
+        return pos[0] + dx, pos[1] + dy
+
+    while steps < max_steps and grid.fuel > 0 and not grid.found_enemy:
+        pos = grid.current_pos
+        free = [f for f in directions if not grid.is_blocked(*cell(f))]
+        direction = next_step_toward(
+            pos, grid.enemy_pos, grid.obstacles, grid.facing)
+        if entry is None and (direction not in free or distance(cell(direction)) >= distance(pos)):
+            entry, wall_steps, hand = distance(pos), 0, -1
+        if entry is not None:
+            i = directions.index(grid.facing)
+            direction = next((directions[(i + n) % 4] for n in (hand, 0, -hand, 2)
+                              if directions[(i + n) % 4] in free), grid.facing)
+        while grid.facing != direction:
+            grid.turn_right()
+        grid.move_forward()
+        steps += 1
+        visited.add(grid.current_pos)
+        if entry is not None:
+            wall_steps += 1
+            if distance(grid.current_pos) < entry:
+                entry = None
+            elif wall_steps > limit and hand == -1:
+                hand, wall_steps = 1, 0
+            elif wall_steps > 2 * limit:
+                entry = None
+    return {"steps": steps, "collisions": grid.collision_count,
+            "visited_count": len(visited), "found_enemy": grid.found_enemy,
+            "success": grid.found_enemy}
 
 
 def report_to_json(stats):
     """TODO(Q6)：把 stats 序列化为确定性的 JSON 字符串，见题面 Q6 规范。"""
-    raise NotImplementedError("Q6 report_to_json：题面 Q6·报告序列化")
+    return json.dumps(stats, sort_keys=True, separators=(",", ":"))
 
 
 # ---------------------------------------------------------------------------
